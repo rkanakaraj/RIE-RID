@@ -1,7 +1,9 @@
 from PIL import Image
 import matplotlib.pyplot as plt
+import math
 import numpy as np
 import random
+import sympy
 
 def vertical_split(img, left, top, right, bottom):
     """
@@ -113,43 +115,63 @@ def flip_and_merge(mat1, mat2, n, m):
         x = x+1
     return merged_matrix
 
-def generate_elgamal_key():
-    """
-    generates and returns private and public keys for elgamal encryption
-    """
-    #g should be a root of p-1
-    g = 6   #random integer, public key
-    p = 37  #prime number, public key
-    
-    #choose random number x in the interval [1, p-2]
-    #x = random.randint(1, p-2)
-    x = 9   #secret key
-    
-    y = pow(g, x, p)    #public key
-    return g,p,x,y
+def discrete_logarithm(Zp, p, phi_n, a=None):
+  dis_log, roots, order = [], [], None
+  for g in Zp:
+    row = []
+    for x in range(1, phi_n+1):
+      val = pow(int(g), int(x), p)
+      row.append(val)
+    for j in row:
+      if j == 1:
+        if a:
+          order = row.index(j)+1
+        if row.index(j)+1 == phi_n:
+          roots.append(g)
+        break
+    dis_log.append(row)
+  return roots[0]
 
-def encrypt(g, p, x, y, message_matrix):
+def generate_Zn(n):
+  Zn = []
+  for i in range(1, n):
+    if math.gcd(i, n) == 1:
+      Zn.append(i)
+  return Zn
+
+def generate_elgamal_key():
+    while True:
+        try:
+            p = sympy.randprime(260, 1000)
+            Zp, x = generate_Zn(p), random.randint(2, p-2)
+            e1 = discrete_logarithm(Zp, p, len(Zp))
+            break
+        except Exception as e:
+            print("Error", e)
+            continue
+    e2 = pow(e1, x, p)
+    return e1,e2,p,x,Zp
+
+def encrypt(e1, e2, p, Zp, message_matrix):
     """
     encrypts the message 
-    input- g,p,y: public keys, x: secret key, message_matrix: matrix to be encrypted
+    input- e1, e2, p: public keys, message_matrix: matrix to be encrypted
     output- encrypted matrix
     """
     
-    #choose random number k in the interval [1, p-2]
-    #k = random.randint(1, p-2)
-    k = 21
+    r = random.choice(Zp)
     
-    c1 = pow(g, k, p)
-    temp = pow(y, k, p)
+    c1 = pow(e1, r, p)
+    temp = pow(e2, r, p)
     
-    encrypted = [[0 for i in range(width)] for j in range(height)]
-    for i in range(height):
-        for j in range(width):
-            encrypted[i][j] = message_matrix[i][j] * temp
-    return encrypted
+    encrypted = [[0 for i in range(len(message_matrix[0]))] for j in range(len(message_matrix))]
+    for i in range(len(message_matrix)):
+        for j in range(len(message_matrix[0])):
+            encrypted[i][j] = ((message_matrix[i][j]*temp)%p).astype(np.uint8)
+    return encrypted, c1
             
 
-img = Image.open("test.png").convert('LA')
+img = Image.open("../src/test.png").convert('LA')
 # img.save("grayscale.png")
 width, height = img.size
 img = img.resize((width-width%2,height-height%2))
@@ -232,16 +254,22 @@ m = Image.fromarray(np.asarray(merged_matrix))
 plt.imshow(m)
 plt.show()
 
-m.save("encrypted.png")
-
 """
 STEP 6
 generate keys for elgamal cyptosystem and encrypt the matrix
 """
 
-# g,p,x,y = generate_elgamal_key()
-# encrypted_matrix = encrypt(g, p, x, y, merged_matrix)
-# print("Elgamal encrypted:")
-# e = Image.fromarray(np.asarray(encrypted_matrix))
-# plt.imshow(e)
-# plt.show()
+e1,e2,p,x,Zp = generate_elgamal_key()
+encrypted_matrix,c1 = encrypt(e1, e2, p, Zp, merged_matrix)
+print("Elgamal encrypted:")
+
+e = Image.fromarray(np.asarray(encrypted_matrix))
+plt.imshow(e)
+plt.show()
+
+with open("../decryption/key","w") as f:
+    f.write(str(x)+' '+str(c1)+' '+str(p))
+    
+
+e.save("../decryption/encrypted.png")
+    

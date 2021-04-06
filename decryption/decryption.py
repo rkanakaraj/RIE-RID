@@ -30,8 +30,8 @@ def flip_and_split(image):
         else:
             im2.append(image[i][::-1])
     im1, im2 = np.transpose(np.asarray(im1)), np.transpose(np.asarray(im2))
-    # add alpha
-    return arr_to_mat(im1), arr_to_mat(im2)
+    
+    return im1, im2
 
 def inv_zig_zag(arr, shape):
     ct = 0
@@ -88,13 +88,34 @@ def inv_spiral_scan(arr, shape):
 def join(im1, im2):
     return np.transpose(np.asarray(list(np.transpose(im1))+list(np.transpose(im2))))
 
+
+def euclideanModInverse(a, m):  
+    if a == 0 :   
+        return m, 0, 1
+    gcd, x1, y1 = euclideanModInverse(m%a, a)  
+    x = y1 - (m//a) * x1  
+    y = x1
+    return gcd, x, y
+
+def decrypt(image, secret, c, p):
+    _, inv, _ = euclideanModInverse(pow(c, secret, p), p)
+    for i in range(len(image)):
+        for j in range(len(image[0])):
+            image[i][j] = (image[i][j]*inv)%p
+    return image
+
 img = Image.open("encrypted.png").convert('LA')
 width, height = img.size
 
-
 plt.imshow(img)
+plt.show()
 
 img_arr = mat_to_arr(np.asarray(img))
+
+with open("key") as f:
+    secret, c, p = [int(i) for i in f.read().split()]
+
+img_arr = decrypt(img_arr, secret, c, p)
 
 """
 STEP 5
@@ -105,9 +126,9 @@ merge the broken matrices by alternate columns from both matrices
 im1, im2 = flip_and_split(img_arr)
 s1 = im1.shape
 s2 = im2.shape
-plt.imshow(Image.fromarray(np.asarray(im1)))
+plt.imshow(Image.fromarray(arr_to_mat(im1)))
 plt.show()
-plt.imshow(Image.fromarray(np.asarray(im2)))
+plt.imshow(Image.fromarray(arr_to_mat(im2)))
 plt.show()
 
 
@@ -117,7 +138,7 @@ inverse of
 arrange traversed lists back to matrix form
 """
 
-im1, im2 = np.ravel(mat_to_arr(im1)), np.ravel(mat_to_arr(im2))
+im1, im2 = np.ravel(im1), np.ravel(im2)
 
 """
 STEP 3
