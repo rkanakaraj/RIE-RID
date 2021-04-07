@@ -115,6 +115,27 @@ def flip_and_merge(mat1, mat2, n, m):
         x = x+1
     return merged_matrix
 
+#TODO: move to utils
+def arr_to_mat(arr):
+    proc_image = []
+    for i in range(len(arr)):
+        temp = []
+        for j in range(len(arr[0])):
+            temp.append(np.asarray([arr[i][j],255]).astype(np.uint8))
+        proc_image.append(np.asarray(temp))
+    return np.asarray(proc_image)
+
+
+def mat_to_arr(image):
+    proc_image = []
+    for i in range(len(image)):
+        temp = []
+        for j in range(len(image[0])):
+            temp.append(image[i][j][0])
+        proc_image.append(np.asarray(temp))
+    return np.asarray(proc_image)
+######################
+
 def discrete_logarithm(Zp, p, phi_n, a=None):
   dis_log, roots, order = [], [], None
   for g in Zp:
@@ -143,7 +164,8 @@ def generate_elgamal_key():
     while True:
         try:
             p = sympy.randprime(260, 1000)
-            Zp, x = generate_Zn(p), random.randint(2, p-2)
+            Zp = generate_Zn(p)
+            x = random.randint(1, p-1)
             e1 = discrete_logarithm(Zp, p, len(Zp))
             break
         except Exception as e:
@@ -152,27 +174,26 @@ def generate_elgamal_key():
     e2 = pow(e1, x, p)
     return e1,e2,p,x,Zp
 
-def encrypt(e1, e2, p, Zp, message_matrix):
+def encrypt(e1, e2, p, Zp, message_matrix, r):
     """
     encrypts the message 
     input- e1, e2, p: public keys, message_matrix: matrix to be encrypted
     output- encrypted matrix
     """
     
-    r = random.choice(Zp)
-    
     c1 = pow(e1, r, p)
     temp = pow(e2, r, p)
     
-    encrypted = [[0 for i in range(len(message_matrix[0]))] for j in range(len(message_matrix))]
+    encrypted = np.asarray([np.asarray([0 for i in range(len(message_matrix[0]))])
+                            for j in range(len(message_matrix))])
     for i in range(len(message_matrix)):
         for j in range(len(message_matrix[0])):
-            encrypted[i][j] = ((message_matrix[i][j]*temp)%p).astype(np.uint8)
+            # print(i,j)
+            encrypted[i][j] = ((message_matrix[i][j]*temp)%p)
     return encrypted, c1
             
 
 img = Image.open("../src/test.png").convert('LA')
-# img.save("grayscale.png")
 width, height = img.size
 img = img.resize((width-width%2,height-height%2))
 width, height = img.size
@@ -205,10 +226,8 @@ plt.imshow(img2)
 plt.show()
 
 #converting to array of pixels
-img1_arr = np.asarray(img1)
-img2_arr = np.asarray(img2)
-
-
+img1_arr = mat_to_arr(np.asarray(img1))
+img2_arr = mat_to_arr(np.asarray(img2))
 
 broken_height, broken_width = img1_arr.shape[0], img1_arr.shape[1]
 
@@ -234,12 +253,12 @@ arrange traversed lists back to matrix form
 
 shuff1 = rearrange(zig_zag_scanned, broken_height, broken_width )
 print("Zig-zag shuffled:")
-z = Image.fromarray(np.asarray(shuff1))
+z = Image.fromarray(arr_to_mat(np.asarray(shuff1)))
 plt.imshow(z)
 plt.show()
 print("spiral shuffled:")
 shuff2 = rearrange(spiral_scanned, broken_height, broken_width )
-s = Image.fromarray(np.asarray(shuff2))
+s = Image.fromarray(arr_to_mat(np.asarray(shuff2)))
 plt.imshow(s)
 plt.show()
 
@@ -250,7 +269,7 @@ merge the broken matrices by alternate columns from both matrices
 
 merged_matrix = flip_and_merge(shuff1, shuff2, broken_height, broken_width)
 print("Merged and flipped:")
-m = Image.fromarray(np.asarray(merged_matrix))
+m = Image.fromarray(arr_to_mat(np.asarray(merged_matrix)))
 plt.imshow(m)
 plt.show()
 
@@ -258,12 +277,12 @@ plt.show()
 STEP 6
 generate keys for elgamal cyptosystem and encrypt the matrix
 """
-
 e1,e2,p,x,Zp = generate_elgamal_key()
-encrypted_matrix,c1 = encrypt(e1, e2, p, Zp, merged_matrix)
+z = random.choice(Zp)
+encrypted_matrix, c1 = encrypt(e1, e2, p, Zp, merged_matrix, z)
 print("Elgamal encrypted:")
 
-e = Image.fromarray(np.asarray(encrypted_matrix))
+e = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
 plt.imshow(e)
 plt.show()
 

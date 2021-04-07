@@ -99,10 +99,11 @@ def euclideanModInverse(a, m):
 
 def decrypt(image, secret, c, p):
     _, inv, _ = euclideanModInverse(pow(c, secret, p), p)
+    new_image = [[0 for i in range(len(image[0]))] for j in range(len(image))]
     for i in range(len(image)):
         for j in range(len(image[0])):
-            image[i][j] = (image[i][j]*inv)%p
-    return image
+            new_image[i][j] = (image[i][j]*inv)%p
+    return new_image
 
 img = Image.open("encrypted.png").convert('LA')
 width, height = img.size
@@ -110,12 +111,22 @@ width, height = img.size
 plt.imshow(img)
 plt.show()
 
-img_arr = mat_to_arr(np.asarray(img))
+org_img_arr = mat_to_arr(np.asarray(img))
 
 with open("key") as f:
     secret, c, p = [int(i) for i in f.read().split()]
 
-img_arr = decrypt(img_arr, secret, c, p)
+img_arr = decrypt(org_img_arr, secret, c, p)
+
+plt.imshow(Image.fromarray(arr_to_mat(img_arr)))
+plt.show()
+
+# ct = 0
+# for i in range(len(img_arr)):
+#     for j in range(len(img_arr[0])):
+#         if img_arr[i][j]==merged_matrix[i][j]:#sdecrypt(org_img_arr[i][j], secret, c,p):
+#             print("erong")
+#             ct+=1
 
 """
 STEP 5
