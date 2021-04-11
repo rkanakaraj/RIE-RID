@@ -121,13 +121,6 @@ img_arr = decrypt(org_img_arr, secret, c, p)
 plt.imshow(Image.fromarray(arr_to_mat(img_arr)))
 plt.show()
 
-# ct = 0
-# for i in range(len(img_arr)):
-#     for j in range(len(img_arr[0])):
-#         if img_arr[i][j]==merged_matrix[i][j]:#sdecrypt(org_img_arr[i][j], secret, c,p):
-#             print("erong")
-#             ct+=1
-
 """
 STEP 5
 inverse of 
