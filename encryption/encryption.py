@@ -163,16 +163,16 @@ def generate_Zn(n):
 def generate_elgamal_key():
     while True:
         try:
-            p = sympy.randprime(260, 1000)
+            p = sympy.randprime(300, 1080)
             Zp = generate_Zn(p)
-            x = random.randint(1, p-1)
+            d = random.randint(1, p-2)
             e1 = discrete_logarithm(Zp, p, len(Zp))
             break
         except Exception as e:
             print("Error", e)
             continue
-    e2 = pow(e1, x, p)
-    return e1,e2,p,x,Zp
+    e2 = pow(e1, d, p)
+    return e1,e2,p,d,Zp
 
 def encrypt(e1, e2, p, Zp, message_matrix, r):
     """
@@ -277,9 +277,10 @@ plt.show()
 STEP 6
 generate keys for elgamal cyptosystem and encrypt the matrix
 """
-e1,e2,p,x,Zp = generate_elgamal_key()
+e1,e2,p,d,Zp = generate_elgamal_key()
 z = random.choice(Zp)
 encrypted_matrix, c1 = encrypt(e1, e2, p, Zp, merged_matrix, z)
+np.savetxt("../decryption/matrix.txt", encrypted_matrix, fmt='%.2f')
 print("Elgamal encrypted:")
 
 e = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
@@ -287,8 +288,8 @@ plt.imshow(e)
 plt.show()
 
 with open("../decryption/key","w") as f:
-    f.write(str(x)+' '+str(c1)+' '+str(p))
-    
+    f.write(str(d)+' '+str(c1)+' '+str(p))
+
 
 e.save("../decryption/encrypted.png")
     

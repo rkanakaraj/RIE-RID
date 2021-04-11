@@ -98,22 +98,22 @@ def euclideanModInverse(a, m):
     return gcd, x, y
 
 def decrypt(image, secret, c, p):
-    _, inv, _ = euclideanModInverse(pow(c, secret, p), p)
+    _, inv, _ = euclideanModInverse(pow(c, secret), p)
     new_image = [[0 for i in range(len(image[0]))] for j in range(len(image))]
     for i in range(len(image)):
         for j in range(len(image[0])):
             new_image[i][j] = (image[i][j]*inv)%p
     return new_image
 
-img = Image.open("encrypted.png").convert('LA')
+img = Image.open("../decryption/encrypted.png").convert('LA')
 width, height = img.size
 
 plt.imshow(img)
 plt.show()
 
-org_img_arr = mat_to_arr(np.asarray(img))
+org_img_arr = np.loadtxt("../decryption/matrix.txt", dtype='i', delimiter=' ')
 
-with open("key") as f:
+with open("../decryption/key") as f:
     secret, c, p = [int(i) for i in f.read().split()]
 
 img_arr = decrypt(org_img_arr, secret, c, p)

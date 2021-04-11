@@ -70,7 +70,8 @@ def sdecrypt(xxx, secret, c, p):
     return kkk
 
 e1,e2,p,x,Zp = sgenerate_elgamal_key()
-c2,c1 = sencrypt(e1, e2, p, Zp, 139)
+r = 139
+c2,c1 = sencrypt(e1=e1, e2=e2, p=p, Zp=Zp, r=r)
 print(c1,c2)
 
 print(sdecrypt(c2, x, c1, p))
