@@ -176,6 +176,7 @@ def generate_elgamal_key():
 
 def encrypt(e1, e2, p, Zp, message_matrix, r):
     """
+    elgamal
     encrypts the message 
     input- e1, e2, p: public keys, message_matrix: matrix to be encrypted
     output- encrypted matrix
@@ -192,7 +193,16 @@ def encrypt(e1, e2, p, Zp, message_matrix, r):
             encrypted[i][j] = ((message_matrix[i][j]*temp)%p)
     return encrypted, c1
             
-
+def generate_lorentz_x(num, a=10, b=8/3, c=28):
+    x = [1]
+    y = 1
+    z = 1
+    for i in range(num-1):
+        x.append(a*(y-z))
+        yt = c*x[-2]-y-x[-2]*z
+        z = x[-2]*y - b*z
+        y = yt
+    return x
 img = Image.open("../src/test.png").convert('LA')
 width, height = img.size
 img = img.resize((width-width%2,height-height%2))
