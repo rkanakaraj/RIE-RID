@@ -4,7 +4,8 @@ import math
 import numpy as np
 import random
 import sympy
-
+from scipy.integrate import odeint
+    
 def vertical_split(img, left, top, right, bottom):
     """
     crops the image based on the given co-ordinates.
@@ -193,16 +194,20 @@ def encrypt(e1, e2, p, Zp, message_matrix, r):
             encrypted[i][j] = ((message_matrix[i][j]*temp)%p)
     return encrypted, c1
             
-def generate_lorentz_x(num, a=10, b=8/3, c=28):
-    x = [1]
-    y = 1
-    z = 1
-    for i in range(num-1):
-        x.append(a*(y-z))
-        yt = c*x[-2]-y-x[-2]*z
-        z = x[-2]*y - b*z
-        y = yt
-    return x
+def generate_lorentz(num, sigma=10, beta=8/3, rho=28):
+    """ 
+        returns lorentz chaotic sequence of x,y,z
+    """
+    def f(state, t):
+        """ returns Derivatives of x,y,z """
+        x, y, z = state
+        return sigma * (y - x), x * (rho - z) - y, x * y - beta * z  
+    
+    state0 = [1.0, 1.0, 1.0] #init
+    t = np.arange(num)
+    
+    return odeint(f, state0, t)
+
 img = Image.open("../src/test.png").convert('LA')
 width, height = img.size
 img = img.resize((width-width%2,height-height%2))
