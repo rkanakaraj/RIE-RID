@@ -193,7 +193,7 @@ def encrypt(e1, e2, p, Zp, message_matrix, r):
             # print(i,j)
             encrypted[i][j] = ((message_matrix[i][j]*temp)%p)
     return encrypted, c1
-            
+           
 def generate_lorentz(num, sigma=10, beta=8/3, rho=28):
     """ 
         returns lorentz chaotic sequence of x,y,z
@@ -207,6 +207,42 @@ def generate_lorentz(num, sigma=10, beta=8/3, rho=28):
     t = np.arange(num)
     
     return odeint(f, state0, t)
+
+    
+def generate_rossler(num, sigma=0.2, beta=0.2, rho=5.7):
+    """ 
+        returns rossler chaotic sequence of x,y,z
+    """
+    def f(state, t):
+        """ returns Derivatives of x,y,z """
+        x, y, z = state
+        return -y - z, x + sigma*y, beta + z*(x-rho)
+    
+    state0 = [1.0, 1.0, 1.0] #init
+    t = np.arange(num)
+    
+    return odeint(f, state0, t)
+
+ 
+#TODO:Check
+def encrypt_lchaos(matrix, order):
+    new = np.ones(matrix.shape)
+    ref = np.ravel(matrix)
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            new[i][j] = ref[order[i][j]]
+    return new
+
+def encrypt_rchaos(matrix, x):
+    G = np.ones(matrix.shape)
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            if j!= 0:
+                G[i][j] = G[i][j-1]^matrix[i][j]^x[i][j]
+            else:
+                G[i][j] = 0^matrix[i][j]^x[i][j]
+    return G
+    
 
 img = Image.open("../src/test.png").convert('LA')
 width, height = img.size
@@ -307,4 +343,27 @@ with open("../decryption/key","w") as f:
 
 
 e.save("../decryption/encrypted.png")
-    
+
+"""
+STEP 7
+Lorentz chaos system encryption
+"""
+x = generate_lorentz(encrypted_matrix.shape[0]*encrypted_matrix.shape[1]).transpose()[0]
+order = np.argsort(x)
+encrypted_matrix = encrypt_lchaos(encrypted_matrix, order)
+
+e = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
+plt.imshow(e)
+plt.show()
+
+
+"""
+STEP 8
+Rossler chaos system encryption
+"""
+x = generate_rossler(encrypted_matrix.shape[0]*encrypted_matrix.shape[1]).transpose()[0]
+encrypted_matrix = encrypt_rchaos(encrypted_matrix, x)
+
+e = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
+plt.imshow(e)
+plt.show()
