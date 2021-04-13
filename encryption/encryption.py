@@ -5,7 +5,8 @@ import numpy as np
 import random
 import sympy
 from scipy.integrate import odeint
-    
+import imageio
+
 def vertical_split(img, left, top, right, bottom):
     """
     crops the image based on the given co-ordinates.
@@ -190,7 +191,6 @@ def encrypt(e1, e2, p, Zp, message_matrix, r):
                             for j in range(len(message_matrix))])
     for i in range(len(message_matrix)):
         for j in range(len(message_matrix[0])):
-            # print(i,j)
             encrypted[i][j] = ((message_matrix[i][j]*temp)%p)
     return encrypted, c1
            
@@ -237,9 +237,9 @@ def encrypt_rchaos(matrix, x):
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
             if j!= 0:
-                G[i][j] = G[i][j-1]^matrix[i][j]^x[i][j]
+                G[i][j] = int(G[i][j-1])^int(matrix[i][j])^int(x[i][j])
             else:
-                G[i][j] = 0^matrix[i][j]^x[i][j]
+                G[i][j] = 0^int(matrix[i][j])^int(x[i][j])
     return G
     
 
@@ -348,21 +348,22 @@ STEP 7
 Lorentz chaos system encryption
 """
 x = generate_lorentz(encrypted_matrix.shape[0]*encrypted_matrix.shape[1]).transpose()[0]
-order = np.argsort(np.reshape(encrypted_matrix.shape))
+order = np.argsort(np.reshape(x, encrypted_matrix.shape))
 encrypted_matrix = encrypt_lchaos(encrypted_matrix, order)
 
-e = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
-plt.imshow(e)
+f = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
+plt.imshow(f)
 plt.show()
-
 
 """
 STEP 8
 Rossler chaos system encryption
 """
-x = generate_rossler(encrypted_matrix.shape[0]*encrypted_matrix.shape[1]).transpose()[0]
-encrypted_matrix = encrypt_rchaos(encrypted_matrix, x)
 
-e = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
-plt.imshow(e)
-plt.show()
+r_x = generate_rossler(encrypted_matrix.shape[0]*encrypted_matrix.shape[1]).transpose()[0]
+r_x = np.resize(r_x, encrypted_matrix.shape)
+encrypted_matrix = encrypt_rchaos(encrypted_matrix, r_x)
+final_result = imageio.core.util.Array(encrypted_matrix)
+_ = plt.imshow(final_result,"Greys")
+
+imageio.imwrite("../decryption/matrix.tiff", final_result)
