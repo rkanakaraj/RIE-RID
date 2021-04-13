@@ -227,10 +227,9 @@ def generate_rossler(num, sigma=0.2, beta=0.2, rho=5.7):
 #TODO:Check
 def encrypt_lchaos(matrix, order):
     new = np.ones(matrix.shape)
-    ref = np.ravel(matrix)
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
-            new[i][j] = ref[order[i][j]]
+            new[i][j] = matrix[i][order[i][j]]
     return new
 
 def encrypt_rchaos(matrix, x):
@@ -349,7 +348,7 @@ STEP 7
 Lorentz chaos system encryption
 """
 x = generate_lorentz(encrypted_matrix.shape[0]*encrypted_matrix.shape[1]).transpose()[0]
-order = np.argsort(x)
+order = np.argsort(np.reshape(encrypted_matrix.shape))
 encrypted_matrix = encrypt_lchaos(encrypted_matrix, order)
 
 e = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
