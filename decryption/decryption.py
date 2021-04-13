@@ -2,6 +2,8 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import imageio
+from scipy.integrate import odeint
 
 def mat_to_arr(image):
     proc_image = []
@@ -105,18 +107,93 @@ def decrypt(image, secret, c, p):
             new_image[i][j] = (image[i][j]*inv)%p
     return new_image
 
-img = Image.open("../decryption/encrypted.png").convert('LA')
-width, height = img.size
 
-plt.imshow(img)
+def generate_lorentz(num, sigma=10, beta=8/3, rho=28):
+    """ 
+        returns lorentz chaotic sequence of x,y,z
+    """
+    def f(state, t):
+        """ returns Derivatives of x,y,z """
+        x, y, z = state
+        return sigma * (y - x), x * (rho - z) - y, x * y - beta * z  
+    
+    state0 = [1.0, 1.0, 1.0] #init
+    t = np.arange(num)
+    
+    return odeint(f, state0, t)
+
+    
+def generate_rossler(num, sigma=0.2, beta=0.2, rho=5.7):
+    """ 
+        returns rossler chaotic sequence of x,y,z
+    """
+    def f(state, t):
+        """ returns Derivatives of x,y,z """
+        x, y, z = state
+        return -y - z, x + sigma*y, beta + z*(x-rho)
+    
+    state0 = [1.0, 1.0, 1.0] #init
+    t = np.arange(num)
+    
+    return odeint(f, state0, t)
+
+def decrypt_rossler(matrix, x):
+    new = np.ones(matrix.shape)
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            if j!= 0:
+                new[i][j] = int(new[i][j-1])^int(matrix[i][j])^int(x[i][j])
+            else:
+                new[i][j] = 0^int(matrix[i][j])^int(x[i][j])
+    return new
+
+
+def decrypt_lorenz(matrix, order):
+    new = np.ones(matrix.shape)
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            new[i][order[i][j]] = matrix[i][j]
+    return new
+
+org_img_arr = np.array(imageio.imread("matrix.tiff"))
+width, height = org_img_arr.shape
+
+plt.imshow(org_img_arr, "Greys")
 plt.show()
 
-org_img_arr = np.loadtxt("../decryption/matrix.txt", dtype='i', delimiter=' ')
+# org_img_arr = np.loadtxt("../decryption/matrix.txt", dtype='i', delimiter=' ')
 
 with open("../decryption/key") as f:
     secret, c, p = [int(i) for i in f.read().split()]
 
-img_arr = decrypt(org_img_arr, secret, c, p)
+
+"""
+STEP 8
+inverse of
+Rossler chaos system encryption
+"""
+
+# r_x = generate_rossler(org_img_arr.size).transpose()[0]
+# r_x = np.resize(r_x, org_img_arr.shape)
+# img_arr = decrypt_rossler(org_img_arr, r_x)
+img_arr = org_img_arr
+"""
+STEP 7
+inverse of
+Lorentz chaos system encryption
+"""
+
+x = generate_lorentz(img_arr.size).transpose()[0]
+order = np.argsort(np.reshape(x, img_arr.shape))
+img_arr2 = decrypt_lorenz(img_arr, order)
+
+"""
+STEP 6
+inverse of
+elgamal cyptosystem 
+"""
+
+img_arr = decrypt(img_arr2, secret, c, p)
 
 plt.imshow(Image.fromarray(arr_to_mat(img_arr)))
 plt.show()

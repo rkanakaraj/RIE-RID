@@ -223,8 +223,6 @@ def generate_rossler(num, sigma=0.2, beta=0.2, rho=5.7):
     
     return odeint(f, state0, t)
 
- 
-#TODO:Check
 def encrypt_lchaos(matrix, order):
     new = np.ones(matrix.shape)
     for i in range(len(matrix)):
@@ -327,6 +325,7 @@ plt.show()
 STEP 6
 generate keys for elgamal cyptosystem and encrypt the matrix
 """
+
 e1,e2,p,d,Zp = generate_elgamal_key()
 z = random.choice(Zp)
 encrypted_matrix, c1 = encrypt(e1, e2, p, Zp, merged_matrix, z)
@@ -347,7 +346,7 @@ with open("../decryption/key","w") as f:
 STEP 7
 Lorentz chaos system encryption
 """
-x = generate_lorentz(encrypted_matrix.shape[0]*encrypted_matrix.shape[1]).transpose()[0]
+x = generate_lorentz(encrypted_matrix.size).transpose()[0]
 order = np.argsort(np.reshape(x, encrypted_matrix.shape))
 encrypted_matrix = encrypt_lchaos(encrypted_matrix, order)
 
@@ -360,7 +359,7 @@ STEP 8
 Rossler chaos system encryption
 """
 
-r_x = generate_rossler(encrypted_matrix.shape[0]*encrypted_matrix.shape[1]).transpose()[0]
+r_x = generate_rossler(encrypted_matrix.size).transpose()[0]
 r_x = np.resize(r_x, encrypted_matrix.shape)
 encrypted_matrix = encrypt_rchaos(encrypted_matrix, r_x)
 final_result = imageio.core.util.Array(encrypted_matrix)
