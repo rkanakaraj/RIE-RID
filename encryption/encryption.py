@@ -330,7 +330,7 @@ generate keys for elgamal cyptosystem and encrypt the matrix
 e1,e2,p,d,Zp = generate_elgamal_key()
 z = random.choice(Zp)
 encrypted_matrix, c1 = encrypt(e1, e2, p, Zp, merged_matrix, z)
-np.savetxt("../decryption/matrix.txt", encrypted_matrix, fmt='%.2f')
+# np.savetxt("../decryption/matrix.txt", encrypted_matrix, fmt='%.2f')
 print("Elgamal encrypted:")
 
 e = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
@@ -341,7 +341,7 @@ with open("../decryption/key","w") as f:
     f.write(str(d)+' '+str(c1)+' '+str(p))
 
 
-e.save("../decryption/encrypted.png")
+# e.save("../decryption/encrypted.png")
 
 """
 STEP 7
