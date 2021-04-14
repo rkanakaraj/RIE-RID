@@ -157,7 +157,7 @@ def decrypt_lorenz(matrix, order):
 
 org_img_arr = np.array(imageio.imread("matrix.tiff"))
 width, height = org_img_arr.shape
-
+#img_arr = org_img_arr
 plt.imshow(org_img_arr, "Greys")
 plt.show()
 
@@ -166,17 +166,17 @@ plt.show()
 with open("../decryption/key") as f:
     secret, c, p = [int(i) for i in f.read().split()]
 
-
 """
 STEP 8
 inverse of
 Rossler chaos system encryption
 """
 
-# r_x = generate_rossler(org_img_arr.size).transpose()[0]
-# r_x = np.resize(r_x, org_img_arr.shape)
-# img_arr = decrypt_rossler(org_img_arr, r_x)
+r_x = generate_rossler(org_img_arr.size).transpose()[0]
+r_x = np.resize(r_x, org_img_arr.shape)
+img_arr = decrypt_rossler(org_img_arr, r_x)
 img_arr = org_img_arr
+
 """
 STEP 7
 inverse of
