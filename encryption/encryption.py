@@ -349,16 +349,14 @@ Lorentz chaos system encryption
 x = generate_lorentz(encrypted_matrix.size).transpose()[0]
 order = np.argsort(np.reshape(x, encrypted_matrix.shape))
 lorentz_encrypted_matrix = encrypt_lchaos(encrypted_matrix, order)
-
+print("Lorenz encrypted:")
 #f = Image.fromarray(arr_to_mat(np.asarray(encrypted_matrix)))
 
 f = imageio.core.util.Array(lorentz_encrypted_matrix)
-_ = plt.imshow(f)
+_ = plt.imshow(f,"Greys")
+plt.show()
 
 #imageio.imwrite("../decryption/matrix.tiff", f)
-
-#plt.imshow(f)
-plt.show()
 
 """
 STEP 8
@@ -369,6 +367,7 @@ r_x = generate_rossler(lorentz_encrypted_matrix.size).transpose()[0]
 r_x = np.resize(r_x, lorentz_encrypted_matrix.shape)
 encrypted_matrix = encrypt_rchaos(lorentz_encrypted_matrix, r_x)
 final_result = imageio.core.util.Array(lorentz_encrypted_matrix)
+print("Rossler encrypted:")
 _ = plt.imshow(final_result,"Greys")
 
 imageio.imwrite("../decryption/matrix.tiff", final_result)
